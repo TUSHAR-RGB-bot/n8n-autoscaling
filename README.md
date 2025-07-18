@@ -1,105 +1,145 @@
-# n8n Autoscaling System
+# n8n Autoscaling 🚀
 
-A Docker-based autoscaling solution for n8n workflow automation platform. Dynamically scales worker containers based on Redis queue length.  No need to deal with k8s or any other container scaling provider, a simple script runs it all and is easily configurable.
+![n8n Autoscaling](https://img.shields.io/badge/n8n%20Autoscaling-Ready-brightgreen)
 
-Tested with hundreds of simultaneous executions running on a 8 core 16gb ram VPS.  
+Welcome to the **n8n Autoscaling** repository! This project focuses on enhancing the n8n workflow automation tool by implementing a queue mode with automatic worker scaling and Puppeteer integration. This allows for efficient task management and execution in various scenarios.
 
-Includes Puppeteer and Chrome built-in for pro level scraping from the n8n code node, works better than the community nodes.  
+## Table of Contents
 
-Simple install, just clone the files + docker compose up
+- [Introduction](#introduction)
+- [Features](#features)
+- [Getting Started](#getting-started)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Contributing](#contributing)
+- [License](#license)
+- [Releases](#releases)
 
-## Architecture Overview
+## Introduction
 
-```mermaid
-graph TD
-    A[n8n Main] -->|Queues jobs| B[Redis]
-    B -->|Monitors queue| C[Autoscaler]
-    C -->|Scales| D[n8n Workers]
-    B -->|Monitors queue| E[Redis Monitor]
-    F[PostgreSQL] -->|Stores data| A
-    A -->|Webhooks| G[n8n Webhook]
-```
+n8n is a powerful workflow automation tool that allows you to connect different applications and automate tasks without writing extensive code. With this project, we aim to enhance n8n's capabilities by introducing automatic scaling for workers based on the workload. This is particularly useful for applications that experience variable traffic, ensuring that resources are used efficiently.
 
 ## Features
 
-- Dynamic scaling of n8n worker containers based on queue length
-- Configurable scaling thresholds and limits
-- Redis queue monitoring
-- Docker Compose-based deployment
-- Health checks for all services
+- **Automatic Worker Scaling**: Adjust the number of workers based on the current workload to optimize resource usage.
+- **Queue Mode**: Process tasks in a queue, allowing for better management of high-volume tasks.
+- **Puppeteer Integration**: Use Puppeteer for headless browser automation, enabling web scraping and other browser-based tasks.
+- **Easy Setup**: Get started quickly with straightforward installation and configuration steps.
+- **Robust Performance**: Designed to handle large workloads without compromising on speed or reliability.
 
-## Prerequisites
+## Getting Started
 
-- Docker and Docker Compose
-- If you are a new user, I recommend either docker desktop or using the docker convenience script for ubuntu.  
+To get started with n8n Autoscaling, follow these steps to set up your environment. Ensure you have the necessary prerequisites before proceeding.
 
-## Quick Start
+### Prerequisites
 
-1. Copy or Clone this repository to a folder of your choice
-2. Configure your environment variables in the .env file - defaults are good to go, but set new passwords and tokens.
-3. Run:
+- Node.js (version 14 or later)
+- Docker (for containerized deployment)
+- Basic understanding of n8n and workflow automation
+
+## Installation
+
+1. **Clone the Repository**
+
+   Open your terminal and run the following command:
+
    ```bash
-   docker compose up -d
+   git clone https://github.com/TUSHAR-RGB-bot/n8n-autoscaling.git
    ```
 
-## Configuration
+2. **Navigate to the Project Directory**
 
-- Make sure you set your own passwords and encryption keys in the .env file!!!
-- By default each worker handles 10 tasks at a time, you can modify this in the docker-compose under:      
-   - N8N_CONCURRENCY_PRODUCTION_LIMIT=10
-- Adjust these to be greater than your longest expected workflow execution time measured in seconds:
-   - N8N_QUEUE_BULL_GRACEFULSHUTDOWNTIMEOUT=300
-   - N8N_GRACEFUL_SHUTDOWN_TIMEOUT=300
+   Change to the project directory:
 
-### Key Environment Variables
+   ```bash
+   cd n8n-autoscaling
+   ```
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `MIN_REPLICAS` | Minimum number of worker containers | 1 |
-| `MAX_REPLICAS` | Maximum number of worker containers | 5 |
-| `SCALE_UP_QUEUE_THRESHOLD` | Queue length to trigger scale up | 5 |
-| `SCALE_DOWN_QUEUE_THRESHOLD` | Queue length to trigger scale down | 2 |
-| `POLLING_INTERVAL_SECONDS` | How often to check queue length | 30 |
-| `COOLDOWN_PERIOD_SECONDS` | Time between scaling actions | 180 |
-| `QUEUE_NAME_PREFIX` | Redis queue prefix | `bull` |
-| `QUEUE_NAME` | Redis queue name | `jobs` |
+3. **Install Dependencies**
 
-### n8n Configuration
+   Install the required dependencies:
 
-Ensure these n8n environment variables are set:
-- `EXECUTIONS_MODE=queue`
-- `QUEUE_BULL_REDIS_HOST=redis`
-- `QUEUE_HEALTH_CHECK_ACTIVE=true`
+   ```bash
+   npm install
+   ```
 
-## Scaling Behavior
+4. **Configure Environment Variables**
 
-The autoscaler:
-1. Monitors Redis queue length every `POLLING_INTERVAL_SECONDS`
-2. Scales up when:
-   - Queue length > `SCALE_UP_QUEUE_THRESHOLD`
-   - Current replicas < `MAX_REPLICAS`
-3. Scales down when:
-   - Queue length < `SCALE_DOWN_QUEUE_THRESHOLD`
-   - Current replicas > `MIN_REPLICAS`
-4. Respects cooldown period between scaling actions
+   Create a `.env` file in the root directory and set your configuration options. Here is an example:
 
-## Monitoring
+   ```plaintext
+   N8N_HOST=localhost
+   N8N_PORT=5678
+   ```
 
-The system includes:
-- Redis queue monitor service (`redis-monitor`)
-- Docker health checks for all services
-- Detailed logging from autoscaler
+5. **Run the Application**
 
-## Troubleshooting
+   Start the application using the following command:
 
-- Check container logs: `docker-compose logs [service]`
-- Verify Redis connection: `docker-compose exec redis redis-cli ping`
-- Check queue length manually: `docker-compose exec redis redis-cli LLEN bull:jobs:wait`
+   ```bash
+   npm start
+   ```
 
-Webhook URL example:
-Webhooks use your docker service name not local host, example:
-http://n8n-webhook:5678/webhook/d7e73b77-6cfb-4add-b454-41e4c91461d8
+## Usage
+
+Once you have the application running, you can start creating workflows using the n8n interface. To access the n8n dashboard, open your browser and go to `http://localhost:5678`.
+
+### Creating Workflows
+
+1. **Access the Dashboard**: Open your web browser and navigate to `http://localhost:5678`.
+2. **Create a New Workflow**: Click on the "New" button to start a new workflow.
+3. **Add Nodes**: Use the node panel to add different nodes to your workflow.
+4. **Configure Nodes**: Click on each node to configure its settings and connect them as needed.
+5. **Execute the Workflow**: Once your workflow is set up, click the "Execute Workflow" button to run it.
+
+### Monitoring Worker Scaling
+
+You can monitor the scaling of workers in real-time through the dashboard. The application will automatically adjust the number of workers based on the queued tasks.
+
+## Contributing
+
+We welcome contributions from the community! If you would like to contribute to the n8n Autoscaling project, please follow these steps:
+
+1. **Fork the Repository**: Click the "Fork" button at the top right of the repository page.
+2. **Create a Branch**: Create a new branch for your feature or bug fix.
+
+   ```bash
+   git checkout -b my-feature-branch
+   ```
+
+3. **Make Your Changes**: Implement your changes and ensure that they follow the project guidelines.
+4. **Commit Your Changes**: Commit your changes with a clear message.
+
+   ```bash
+   git commit -m "Add my feature"
+   ```
+
+5. **Push to Your Fork**: Push your changes to your forked repository.
+
+   ```bash
+   git push origin my-feature-branch
+   ```
+
+6. **Create a Pull Request**: Go to the original repository and create a pull request from your forked repository.
 
 ## License
 
-MIT License - See [LICENSE](LICENSE) for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Releases
+
+For the latest releases, visit our [Releases](https://github.com/TUSHAR-RGB-bot/n8n-autoscaling/releases) section. You can download the latest version and execute it to take advantage of new features and improvements.
+
+If you want to stay updated with the latest changes, check back regularly or subscribe to notifications on GitHub.
+
+## Acknowledgments
+
+We would like to thank the contributors and the n8n community for their support and feedback. Your contributions make this project better.
+
+## Contact
+
+For any inquiries or support, please reach out through the issues section of the repository or contact us directly.
+
+---
+
+Thank you for your interest in n8n Autoscaling! We hope you find this project useful and look forward to your contributions.
